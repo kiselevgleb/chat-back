@@ -40,7 +40,7 @@ app.use(async (ctx, next) => {
   }
 });
 
-let users = ["Nik", "User"];
+let users = [];
 const Router = require('koa-router');
 const router = new Router();
 let masMes = "";
@@ -57,7 +57,18 @@ router.get('/names', async (ctx) => {
 router.get('/all', async (ctx) => {
   ctx.body = users;
 });
-
+router.get('/close', async (ctx) => {
+  console.log("close");
+  if (users.includes(ctx.request.query.name)) {
+    console.log(users);
+    const num = users.indexOf(ctx.request.query.name);
+    users.splice(num, 1);
+    console.log(users);
+    ctx.body = true;
+  } else {
+    ctx.body = false;
+  }
+});
 app.use(router.routes()).use(router.allowedMethods());
 const port = process.env.PORT || 7070;
 const WS = require('ws');
@@ -68,7 +79,8 @@ const wsServer = new WS.Server({
 wsServer.on('connection', (ws, req) => {
   const errCallback = (err) => {
     if (err) {}
-  }
+  };
+  console.log(Array.from(wsServer.clients).length);
   ws.on('message', msg => {
     let msgJSON = JSON.parse(msg);
     if (msgJSON.mes !== undefined) {
@@ -78,6 +90,9 @@ wsServer.on('connection', (ws, req) => {
     setInterval(() => {
       ws.send(masMes.toString(), errCallback);
     }, 1000);
+  });
+  ws.on('close', msg => {
+    ws.close();
   });
 });
 server.listen(port);
