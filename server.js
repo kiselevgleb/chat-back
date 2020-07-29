@@ -40,50 +40,44 @@ app.use(async (ctx, next) => {
   }
 });
 
-const mas = ["action", "action", "freekick", "action", "goal", "freekick", "action", "freekick", "action", "freekick"];
-// const masTotal =[];
-let coin = 0;  
+let users = ["Nik", "User"];
 const Router = require('koa-router');
 const router = new Router();
-
-function action() {
-  return mas[Math.floor(Math.random() * 10)];
-}
-
-router.get('/sse', async (ctx) => {
-  coin = 0;
-  const masTotal =[];
-  streamEvents(ctx.req, ctx.res, {
-    async fetch(lastEventId) {
-      return [];
-    },
-
-    stream(sse) {
-        const interval = setInterval(() => {
-          console.log(coin);
-          if (coin < 50) {
-            let d = action();
-            if(d==="freekick"){
-              d='&#10071'+ '&#10071'+d;
-            } else if(d==="goal"){
-              d='&#9917'+d;
-            } 
-            let date = new Date;
-            masTotal.push("<p style='font-size:10px'>"+date.toISOString().split('T')[0]+" "+date.getHours()+":"+date.getMinutes()+"</p>"+"<p>"+d+"</p>"+"<br>");
-          sse.sendEvent({
-            data: masTotal
-          });
-          coin++;
-          return () => clearInterval(interval);
-        }
-        else { 
-          return;
-        }
-        }, 1000);
-    }
-  });
-  ctx.respond = false;
+let masMes = "";
+let masMesReplaced = "";
+router.get('/names', async (ctx) => {
+  if (!users.includes(ctx.request.query.name)) {
+    users.push(ctx.request.query.name);
+    ctx.body = true;
+  } else {
+    ctx.body = false;
+  }
 });
+
+router.get('/all', async (ctx) => {
+  ctx.body = users;
+});
+
 app.use(router.routes()).use(router.allowedMethods());
 const port = process.env.PORT || 7070;
-const server = http.createServer(app.callback()).listen(port);
+const WS = require('ws');
+const server = http.createServer(app.callback());
+const wsServer = new WS.Server({
+  server
+});
+wsServer.on('connection', (ws, req) => {
+  const errCallback = (err) => {
+    if (err) {}
+  }
+  ws.on('message', msg => {
+    let msgJSON = JSON.parse(msg);
+    if (msgJSON.mes !== undefined) {
+      let date = new Date;
+      masMes += `<p data-id=${msgJSON.name} style='font-size:10px; text-align: left'>` + msgJSON.name + ", " + date.toISOString().split('T')[0] + " " + date.getHours() + ":" + date.getMinutes() + "</p>" + `<p class='pMes' data-id=${msgJSON.name}>` + msgJSON.mes + "</p>" + "<br>";
+    }
+    setInterval(() => {
+      ws.send(masMes.toString(), errCallback);
+    }, 1000);
+  });
+});
+server.listen(port);

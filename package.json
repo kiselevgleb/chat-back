@@ -1,0 +1,26 @@
+{
+  "name": "chat-back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+"scripts": { "watch": "forever -w server.js", "prestart": "npm install", "start": "forever server.js" },
+
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kiselevgleb/chat-back.git"
+  },
+  "author": "GK",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kiselevgleb/chat-back/issues"
+  },
+  "homepage": "https://github.com/kiselevgleb/chat-back#readme",
+  "dependencies": {
+    "forever": "^3.0.0",
+    "http-event-stream": "^0.2.0",
+    "koa": "^2.13.0",
+    "koa-router": "^9.1.0",
+    "uuid": "^8.3.0",
+    "ws": "^7.3.1"
+  }
+}
